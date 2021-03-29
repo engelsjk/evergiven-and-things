@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Ever Given</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+
+        #cursor {
+            position: absolute;
+            width: 1214px;
+            height: auto;
+            cursor: none;
+            pointer-events: none;
+            z-index: 999;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="overhead">
+        <h1 class="title">Ever Given</h1>
+        <div class="info">
+            <ul>
+                <li class="name"><a href="https://engelsjk.com">Jon Engelsman</a></li>
+                <li><a href="https://twitter.com/engelsjk"><span class="icon twitter">
+                            <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg"
+                                xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 16 16"
+                                enable-background="new 0 0 16 16" xml:space="preserve">
+                                <path fill="#C2C2C2" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+            c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27
+            c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767
+            c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206
+            C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271
+            c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469
+            c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z" />
+                            </svg>
+                        </span></a></li>
+                <li><button id="helpbtn" class="help">?</button></li>
+            </ul>
+        </div>
+    </header>
+    <img id="cursor" src="https://cdn.glitch.com/40d83f73-34cc-401e-90f3-d6b2f92f2b01%2Fevergiven.png" alt="cursor" />
+    <div id="map"></div>
+    <div id="helpmodal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Ever Given</h2>
+            <p>
+            <ul>
+                <li>Hold shift and then mousewheel to rotate the ship.</li>
+                <li>Click to place a ship on the map.</li>
+            </ul>
+            </p>
+            <p>
+                Inspired by <a href="evergiven-everywhere.glitch.me">evergiven-everywhere.glitch.me</a> from <a
+                    href="https://twitter.com/en_dash/status/1376172427097559044">Garrett Dash Nelson</a>.
+                https://www.businessinsider.com/satellite-images-show-latest-effort-to-remove-suez-canal-ship-2021-3
+            </p>
+        </div>
+    </div>
+
+    <script>
+
+        mapboxgl.accessToken = 'pk.eyJ1IjoiZW5nZWxzamsiLCJhIjoiY2p6dnVpNTl2MGplMTNicGZ2YW50ZDU1bSJ9.Qxqpf4oJC1-cUyssMCy6dQ';
+
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/satellite-v9',
+            center: [32.57997, 30.017144],
+            zoom: 16,
+            hash: true,
+            pitchWithRotate: false
+        });
+
+        var state = {
+            thing: "evergiven",
+            x: 0,
+            y: 0,
+            lat: 0,
+            lng: 0,
+            zoom: 0,
+            theta: 0
+        };
+
+        var things = {
+            "evergiven": {
+                "len": 399.94,
+                "ar": 6.38947
+            },
+            "pentagon": {
+                "len": 430.99,
+                "ar": 0.95618
+            },
+            "wisconsin": {
+                "len": 270.36,
+                "ar": 7.84314
+            },
+            "midway": {
+                "len": 295.96,
+                "ar": 3.63636
+            }
+        };
+
+        map.on('load', function (e) {
+            state.zoom = map.getZoom();
+            updateCursor();
+            elShow(cursor);
+            initModal();
+        })
+
+        map.on('mousemove', function (e) {
+            state.x = e.originalEvent.clientX;
+            state.y = e.originalEvent.clientY;
+            state.lat = e.lngLat.lat;
+            state.lng = e.lngLat.lng;
+            updateCursor();
+        });
+
+        map.on('drag', function (e) {
+            state.x = e.originalEvent.clientX;
+            state.y = e.originalEvent.clientY;
+            updateCursor();
+        });
+
+        map.on('zoom', function () {
+            state.zoom = map.getZoom();
+            updateCursor()
+            var w = things[state.thing].len / metersPerPixel(state.lat, state.zoom);
+            document.querySelectorAll('.ship').forEach(el => {
+                elSetWidth(el, w);
+            });
+        })
+
+        map.on('wheel', function (e) {
+            if (e.originalEvent.shiftKey) {
+                e.preventDefault();
+                state.theta = e.originalEvent.deltaY > 0 ? state.theta + 2 % 360 : state.theta - 2 % 360
+                elSetRotate(cursor, state.theta);
+            }
+        });
+
+        map.on('click', function (e) {
+
+            var d = document.createElement('div');
+
+            var el = document.createElement('img');
+            el.className = 'ship';
+            el.src = 'https://cdn.glitch.com/40d83f73-34cc-401e-90f3-d6b2f92f2b01%2Fevergiven.png';
+
+            var w = things[state.thing].len / metersPerPixel(state.lat, state.zoom);
+            el.style.width = w + "px";
+
+            d.appendChild(el);
+
+            new mapboxgl.Marker(d)
+                .setLngLat(e.lngLat)
+                .addTo(map);
+
+            elSetRotate(el, state.theta);
+        });
+
+        object.addEventListener("keypress", eventKeyPress);
+
+        function metersPerPixel(lat, zoom) {
+            var C = 40075017.686;
+            var latRad = lat * (Math.PI / 180);
+            return C * Math.cos(latRad) / Math.pow(2, zoom + 9);
+        }
+
+        function updateCursor() {
+            var w = things[state.thing].len / metersPerPixel(state.lat, state.zoom);
+            var h = w / things[state.thing].ar;
+            elSetWidth(cursor, w);
+            elSetX(cursor, state.x - w / 2);
+            elSetY(cursor, state.y - h / 2);
+        }
+
+        function elSetX(el, x) {
+            el.style.left = x + "px";
+        }
+
+        function elSetY(el, y) {
+            el.style.top = y + "px";
+        }
+
+        function elSetWidth(el, w) {
+            el.style.width = w + "px";
+        }
+
+        function elSetRotate(el, theta) {
+            el.style.transform = `rotate(${theta}deg)`;
+        }
+
+        function elHide(el) {
+            el.style.display = 'none';
+        }
+
+        function elShow(el) {
+            el.style.display = 'block';
+        }
+
+        function initModal() {
+            // help modal
+            var modal = document.getElementById("helpmodal");
+            var btn = document.getElementById("helpbtn");
+            var span = document.getElementsByClassName("close")[0];
+            btn.onclick = function () {
+                modal.style.display = "block";
+            }
+            span.onclick = function () {
+                modal.style.display = "none";
+            }
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+        }
+
+        function eventKeyPress(e) {
+            switch (e.keyCode) {
+                case 49: state.thing = "evergiven"
+                case 50: state.thing = "midway"
+                case 51: state.thing = "wisconsin"
+                case 52: state.thing = "pentagon"
+                default: state.thing = "evergiven"
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
