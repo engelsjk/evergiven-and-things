@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Ever Given</title>
+    <title>Ever Given and Other Things</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.css" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
@@ -34,11 +34,11 @@
 
 <body>
     <header class="overhead">
-        <h1 class="title">Ever Given</h1>
+        <h1 class="title"><i>Ever Given</i> and Other Things</h1>
         <div class="info">
             <ul>
                 <li class="name"><a href="https://engelsjk.com">Jon Engelsman</a></li>
-                <li><a href="https://twitter.com/engelsjk"><span class="icon twitter">
+                <li class="twitter"><a href="https://twitter.com/engelsjk"><span class="icon twitter">
                             <svg version="1.1" class="twitter-icon-svg" xmlns="http://www.w3.org/2000/svg"
                                 xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 16 16"
                                 enable-background="new 0 0 16 16" xml:space="preserve">
@@ -55,29 +55,39 @@
             </ul>
         </div>
     </header>
-    <img id="cursor" src="https://cdn.glitch.com/40d83f73-34cc-401e-90f3-d6b2f92f2b01%2Fevergiven.png" alt="cursor" />
+    <img id="cursor" src="https://raw.githubusercontent.com/engelsjk/evergiven-and-things/main/assets/evergiven.png"
+        alt="cursor" />
     <div id="map"></div>
     <div id="helpmodal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>Ever Given</h2>
+            <h2><i>Ever Given</i> and Other Things</h2>
             <p>
             <ul>
-                <li>Hold shift and then mousewheel to rotate the ship.</li>
-                <li>Click to place a ship on the map.</li>
+                <li>Press a number to pick a thing</li>
+                <ul>
+                    <li><b>1</b>: <i>Ever Given</i>, 399.94 m</li>
+                    <li><b>2</b>: USS <i>Midway</i> (CV-41), 295.96 m</li>
+                    <li><b>3</b>: USS <i>Wisconsin</i> (BB-64), 270.36 m</li>
+                    <li><b>4</b>: The Pentagon, 430.99 m</li>
+                </ul>
+                <li>Hold shift and then mousewheel to rotate the thing</li>
+                <li>Click to place the thing on the map</li>
             </ul>
             </p>
             <p>
-                Inspired by <a href="evergiven-everywhere.glitch.me">evergiven-everywhere.glitch.me</a> from <a
+                Inspired by <a href="https://evergiven-everywhere.glitch.me/">evergiven-everywhere.glitch.me</a> from <a
                     href="https://twitter.com/en_dash/status/1376172427097559044">Garrett Dash Nelson</a>.
-                https://www.businessinsider.com/satellite-images-show-latest-effort-to-remove-suez-canal-ship-2021-3
+            </p>
+            <p>
+                <i>Ever Given</i> image copied from <a href="https://evergiven-everywhere.glitch.me/">evergiven-everywhere.glitch.me</a> (via Maxar/Kristin Carringer). Other images from Mapbox Satellite imagery.
             </p>
         </div>
     </div>
 
     <script>
 
-        mapboxgl.accessToken = 'pk.eyJ1IjoiZW5nZWxzamsiLCJhIjoiY2p6dnVpNTl2MGplMTNicGZ2YW50ZDU1bSJ9.Qxqpf4oJC1-cUyssMCy6dQ';
+        mapboxgl.accessToken = '<<INSERT_TOKEN>>>>>';
 
         var map = new mapboxgl.Map({
             container: 'map',
@@ -87,6 +97,9 @@
             hash: true,
             pitchWithRotate: false
         });
+        
+        map.dragRotate.disable();
+        map.touchZoomRotate.disableRotation();
 
         var state = {
             thing: "evergiven",
@@ -101,19 +114,28 @@
         var things = {
             "evergiven": {
                 "len": 399.94,
-                "ar": 6.38947
+                "ar": 6.38947,
+                "url": "https://raw.githubusercontent.com/engelsjk/evergiven-and-things/main/assets/evergiven.png"
             },
             "pentagon": {
                 "len": 430.99,
-                "ar": 0.95618
+                "ar": 0.95618,
+                "url": "https://raw.githubusercontent.com/engelsjk/evergiven-and-things/main/assets/pentagon.png"
             },
             "wisconsin": {
                 "len": 270.36,
-                "ar": 7.84314
+                "ar": 7.84314,
+                "url": "https://raw.githubusercontent.com/engelsjk/evergiven-and-things/main/assets/wisconsin.png"
             },
             "midway": {
                 "len": 295.96,
-                "ar": 3.63636
+                "ar": 3.63636,
+                "url": "https://raw.githubusercontent.com/engelsjk/evergiven-and-things/main/assets/midway.png"
+            },
+            "norwegian_escape": {
+                "len": 326.90,
+                "ar": 5.88235,
+                "url": "https://raw.githubusercontent.com/engelsjk/evergiven-and-things/main/assets/norwegian-escape.png"
             }
         };
 
@@ -140,9 +162,9 @@
 
         map.on('zoom', function () {
             state.zoom = map.getZoom();
-            updateCursor()
-            var w = things[state.thing].len / metersPerPixel(state.lat, state.zoom);
-            document.querySelectorAll('.ship').forEach(el => {
+            updateCursor();
+            document.querySelectorAll('.item').forEach(el => {
+                var w = things[el.dataset.thing].len / metersPerPixel(state.lat, state.zoom);
                 elSetWidth(el, w);
             });
         })
@@ -154,15 +176,15 @@
                 elSetRotate(cursor, state.theta);
             }
         });
-
+        evergiven-help
         map.on('click', function (e) {
 
             var d = document.createElement('div');
-
             var el = document.createElement('img');
-            el.className = 'ship';
-            el.src = 'https://cdn.glitch.com/40d83f73-34cc-401e-90f3-d6b2f92f2b01%2Fevergiven.png';
+            el.className = 'item';
 
+            el.dataset.thing = state.thing;
+            el.src = things[state.thing].url;
             var w = things[state.thing].len / metersPerPixel(state.lat, state.zoom);
             el.style.width = w + "px";
 
@@ -175,7 +197,7 @@
             elSetRotate(el, state.theta);
         });
 
-        object.addEventListener("keypress", eventKeyPress);
+        window.addEventListener("keypress", eventKeyPress);
 
         function metersPerPixel(lat, zoom) {
             var C = 40075017.686;
@@ -207,6 +229,10 @@
             el.style.transform = `rotate(${theta}deg)`;
         }
 
+        function elSetImage(el, url) {
+            el.src = url;
+        }
+
         function elHide(el) {
             el.style.display = 'none';
         }
@@ -234,13 +260,42 @@
         }
 
         function eventKeyPress(e) {
+            elHide(cursor);
             switch (e.keyCode) {
-                case 49: state.thing = "evergiven"
-                case 50: state.thing = "midway"
-                case 51: state.thing = "wisconsin"
-                case 52: state.thing = "pentagon"
-                default: state.thing = "evergiven"
+                case 49:
+                    state.thing = "evergiven";
+                    updateCursor();
+                    elSetImage(cursor, things[state.thing].url);
+                    elShow(cursor);
+                    break;
+                case 50:
+                    state.thing = "midway";
+                    updateCursor();
+                    elSetImage(cursor, things[state.thing].url);
+                    elShow(cursor);
+                    break;
+                case 51:
+                    state.thing = "wisconsin";
+                    updateCursor();
+                    elSetImage(cursor, things[state.thing].url);
+                    elShow(cursor);
+                    break;
+                case 52:
+                    state.thing = "pentagon";
+                    updateCursor();
+                    elSetImage(cursor, things[state.thing].url);
+                    elShow(cursor);
+                    break;
+                case 48:
+                    break;
+                default:
+                    state.thing = "evergiven";
+                    updateCursor();
+                    elSetImage(cursor, things[state.thing].url);
+                    elShow(cursor);
+                    break;
             }
+
         }
 
     </script>
