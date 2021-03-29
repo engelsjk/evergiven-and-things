@@ -281,6 +281,12 @@
                     elShow(cursor);
                     break;
                 case 52:
+                    state.thing = "norwegian_escape";
+                    updateCursor();
+                    elSetImage(cursor, things[state.thing].url);
+                    elShow(cursor);
+                    break;
+                case 53:
                     state.thing = "pentagon";
                     updateCursor();
                     elSetImage(cursor, things[state.thing].url);
