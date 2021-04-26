@@ -81,14 +81,16 @@
                     href="https://twitter.com/en_dash/status/1376172427097559044">Garrett Dash Nelson</a>.
             </p>
             <p>
-                <i>Ever Given</i> image copied from <a href="https://evergiven-everywhere.glitch.me/">evergiven-everywhere.glitch.me</a> (via Maxar/Kristin Carringer). Other images from Mapbox Satellite imagery.
+                <i>Ever Given</i> image copied from <a
+                    href="https://evergiven-everywhere.glitch.me/">evergiven-everywhere.glitch.me</a> (via Maxar/Kristin
+                Carringer). Other images from Mapbox Satellite imagery.
             </p>
         </div>
     </div>
 
     <script>
 
-        mapboxgl.accessToken = '<<INSERT_TOKEN>>>>>';
+        mapboxgl.accessToken = '<<MAPBOX_ACCESS_TOKEN>>';
 
         var map = new mapboxgl.Map({
             container: 'map',
@@ -98,7 +100,7 @@
             hash: true,
             pitchWithRotate: false
         });
-        
+
         map.dragRotate.disable();
         map.touchZoomRotate.disableRotation();
 
@@ -145,6 +147,7 @@
             updateCursor();
             elShow(cursor);
             initModal();
+            addGUI();
         })
 
         map.on('mousemove', function (e) {
@@ -177,7 +180,7 @@
                 elSetRotate(cursor, state.theta);
             }
         });
-        evergiven-help
+
         map.on('click', function (e) {
 
             var d = document.createElement('div');
@@ -302,7 +305,6 @@
                     elShow(cursor);
                     break;
             }
-
         }
 
     </script>
